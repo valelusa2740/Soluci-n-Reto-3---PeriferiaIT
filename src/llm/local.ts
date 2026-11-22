@@ -19,7 +19,8 @@ export class LocalAdapter implements LlmAdapter {
     const texto = mensajes[iUsuario]?.bloques.flatMap((b) => (b.tipo === "texto" ? [b.texto] : [])).join(" ") ?? ""
     const pasos = pasosDelTurno(mensajes.slice(iUsuario + 1))
     const confirmado = texto.match(/CONFIRMÓ el caso (sol-[a-z0-9-]+)/)?.[1]
-    const caso = confirmado ?? texto.match(/sol-\d{3}/i)?.[0].toLowerCase()
+    const propio = texto.replace(/\[Nota del servidor:[^\]]*\]/g, "")
+    const caso = confirmado ?? propio.match(/sol-\d{3}/i)?.[0].toLowerCase()
     const bloques = caso ? siguiente(caso, pasos, Boolean(confirmado), /no la crees|hasta que|antes de crear|sin crear/i.test(texto)) : [textoB(ayuda())]
     return { bloques, uso: { entrada: 0, salida: 0 } }
   }

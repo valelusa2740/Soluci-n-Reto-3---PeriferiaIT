@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: reto-03-oc-agent
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run typecheck && npm test
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: LLM_PROVIDER
+        value: anthropic
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5-5
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ACCESS_USER
+        sync: false
+      - key: ACCESS_PASS
+        sync: false
+      - key: MAX_TOKENS_SESION
+        value: "150000"
+      - key: MAX_TOKENS_DIA
+        value: "2000000"
