@@ -111,7 +111,7 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 
 ## 7. Lectura del proceso: OC retroactivas
 
-**Qué está pasando.** En 1 de las 6 solicitudes del lote (≈17 %), sol-005, la factura FC-88231 se emitió el 10 de agosto y la solicitud se hizo el 27 de agosto, 17 días después. El correo del aprobador lo confirma: "Ya llegó la factura, por favor crear la OC para poder radicarla". En ese caso la OC no sirvió para **autorizar** el gasto antes de comprometerlo. Se usó para **legalizar** una factura que ya existía. La cotización, la comparación de precios y la validación del aprobador llegan cuando el proveedor ya entregó y facturó, así que el control pierde su valor preventivo.
+**Qué está pasando.** En el lote de prueba, 1 de las 6 solicitudes (sol-005) es retroactiva: la factura FC-88231 se emitió el 10 de agosto y la solicitud se hizo el 27 de agosto, 17 días después.. El correo del aprobador lo confirma: "Ya llegó la factura, por favor crear la OC para poder radicarla". En ese caso la OC no sirvió para **autorizar** el gasto antes de comprometerlo. Se usó para **legalizar** una factura que ya existía. La cotización, la comparación de precios y la validación del aprobador llegan cuando el proveedor ya entregó y facturó, así que el control pierde su valor preventivo.
 
 **Qué le diría a la dirección.**
 1. Ya se puede medir. Cada OC retroactiva queda marcada (`retroactiva = true`) en `out/control.csv`, con fecha, centro de costo y proveedor. Con eso se arma un indicador mensual: % de OC retroactivas por centro de costo, por aprobador y por proveedor.
