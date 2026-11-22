@@ -23,7 +23,9 @@ export function textoEvidencia(p: Paquete): string | null {
 
 export function recortar(texto: string, max = MAX_DESCRIPCION): string {
   const limpio = texto.replace(/\s+/g, " ").trim()
-  return limpio.length <= max ? limpio : limpio.slice(0, max).trimEnd()
+  if (limpio.length <= max) return limpio
+  const corte = limpio.slice(0, max + 1).lastIndexOf(" ")
+  return (corte > max / 2 ? limpio.slice(0, corte) : limpio.slice(0, max)).trimEnd()
 }
 
 /** Unidad SAP: horas si la cotización/solicitud habla de horas; si no, unidades. */
