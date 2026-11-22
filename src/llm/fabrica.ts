@@ -2,8 +2,8 @@ import type { LlmAdapter } from "./adapter.js"
 import { GeminiAdapter } from "./gemini.js"
 import { LocalAdapter } from "./local.js"
 
-export const MODELO_GEMINI_POR_DEFECTO = "gemini-3.8-flash"
-export const MODELO_GEMINI_RESPALDO = "gemini-3.5-flash-lite"
+export const MODELO_GEMINI_POR_DEFECTO = "gemini-3.5-flash-lite"
+export const MODELO_GEMINI_RESPALDO = "gemini-3.8-flash"
 
 /**
  * Elige el proveedor por variables de entorno. Es el único lugar que conoce las implementaciones.

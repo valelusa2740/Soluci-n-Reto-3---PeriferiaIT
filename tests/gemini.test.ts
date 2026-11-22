@@ -75,3 +75,18 @@ describe("GeminiAdapter", () => {
     expect(n).toBe(1)
   })
 })
+
+describe("GeminiAdapter: latencia", () => {
+  it("pide thinking mínimo y, si el modelo lo rechaza (400), reintenta sin él", async () => {
+    const cuerpos: Record<string, unknown>[] = []
+    const fetcher = (async (_u: string, init: RequestInit) => {
+      const b = JSON.parse(String(init.body)) as { generationConfig: Record<string, unknown> }
+      cuerpos.push(b.generationConfig)
+      return b.generationConfig.thinkingConfig ? new Response("{}", { status: 400 }) : new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "ok" }] } }] }), { status: 200 })
+    }) as unknown as typeof fetch
+    const r = await new GeminiAdapter("gemini-3.5-flash-lite", "k", fetcher, [1]).enviar([], herramientas, opciones)
+    expect(r.bloques).toEqual([{ tipo: "texto", texto: "ok" }])
+    expect(cuerpos[0].thinkingConfig).toEqual({ thinkingLevel: "low" })
+    expect(cuerpos[1].thinkingConfig).toBeUndefined()
+  })
+})

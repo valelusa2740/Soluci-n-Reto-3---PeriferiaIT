@@ -10,7 +10,7 @@ const raiz = path.resolve(import.meta.dirname, "..")
 
 describe("modulo/ reutilizable", () => {
   it("las herramientas son los mismos objetos que usa la app", () => {
-    for (const k of ["leer_paquete", "validar", "construir_payload", "generar_evidencia", "crear"] as const) expect(modulo[k]).toBe(app[k])
+    for (const k of ["leer_paquete", "validar", "construir_payload", "generar_evidencia", "crear", "procesar"] as const) expect(modulo[k]).toBe(app[k])
   })
   it("agent.md y SKILL.md están sincronizados con agent/prompt.md y src/knowledge (npm run modulo)", async () => {
     const esperado = await contenidoModulo(raiz)

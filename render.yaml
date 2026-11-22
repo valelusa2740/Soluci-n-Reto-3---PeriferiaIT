@@ -14,9 +14,9 @@ services:
       - key: LLM_PROVIDER
         value: gemini
       - key: GEMINI_MODEL
-        value: gemini-3.8-flash
-      - key: GEMINI_FALLBACK_MODEL
         value: gemini-3.5-flash-lite
+      - key: GEMINI_FALLBACK_MODEL
+        value: gemini-3.8-flash
       - key: GEMINI_API_KEY
         sync: false
       - key: MAX_PETICIONES_MINUTO

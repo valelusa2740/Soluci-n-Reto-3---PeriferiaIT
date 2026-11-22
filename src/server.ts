@@ -10,9 +10,9 @@ const limites: Limites = {
   maxIteraciones: num(env.MAX_ITERACIONES, 25),
   maxTokensSesion: num(env.MAX_TOKENS_SESION, 150_000),
   maxTokensDia: num(env.MAX_TOKENS_DIA, 2_000_000),
-  maxTokensRespuesta: num(env.MAX_TOKENS_RESPUESTA, 2_000),
+  maxTokensRespuesta: num(env.MAX_TOKENS_RESPUESTA, 1_200),
   timeoutMs: num(env.LLM_TIMEOUT_MS, 30_000),
-  maxMsTurno: num(env.MAX_MS_TURNO, 100_000),
+  maxMsTurno: num(env.MAX_MS_TURNO, 150_000),
 }
 
 const { ACCESS_USER, ACCESS_PASS } = env

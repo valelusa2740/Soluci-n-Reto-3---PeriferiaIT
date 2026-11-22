@@ -11,7 +11,7 @@ import { construirOrden, textoEvidencia } from "../core/payload.js"
 import { validarPaquete } from "../core/reglas.js"
 import { CASO_REGEX, type Ctx, rutas } from "../core/rutas.js"
 import { pdfEvidencia } from "../core/pdf.js"
-import { escribirArchivo, registrarControl } from "../core/salidas.js"
+import { escribirArchivo, registrarControl, registrarLog } from "../core/salidas.js"
 import { writeFile } from "node:fs/promises"
 import type { OrdenCompra, Paquete, Validacion } from "../core/tipos.js"
 import { jsonEstable, mensajeError, sha256 } from "../core/util.js"
@@ -189,4 +189,64 @@ async function crearOrden(args: { caso: string; payload?: Record<string, unknown
   const creada = await sap.crearOrden(final)
   await registrarControl(ctx, { ...fila, resultado: "creada", numero_oc: creada.numero_oc })
   return ok({ ...creada, idempotente: false, retroactiva: v.retroactiva, evidencia: relativa(ctx, evidencia), advertencias })
+}
+
+type Res = { ok: boolean; data?: Record<string, unknown>; error?: string }
+
+/** Ejecuta un paso y lo deja en out/log.jsonl, igual que si lo hubiera llamado el modelo. */
+async function paso(ctx: Ctx, nombre: string, args: { caso: string }, fn: () => Promise<string>): Promise<Res> {
+  const inicio = Date.now()
+  const r = JSON.parse(await fn()) as Res
+  await registrarLog(ctx, { herramienta: nombre, args, ok: r.ok, ms: Date.now() - inicio, error: r.ok ? undefined : "ver resultado" }).catch(() => undefined)
+  return r
+}
+
+/**
+ * Atajo determinista: encadena oc_leer_paquete → oc_validar → oc_construir_payload → oc_generar_evidencia
+ * en UNA llamada y devuelve un resumen compacto. Reduce las vueltas al modelo (latencia y cuota).
+ * No crea la OC: eso sigue siendo oc_crear, con la confirmación validada por el servidor.
+ */
+export const procesar = {
+  description: "Procesa un caso de punta a punta sin crear la OC: lee el paquete, valida RC1–RC10, arma la OC como quedaría en SAP y genera la evidencia; devuelve un resumen. Úsala primero.",
+  args: { caso },
+  async execute(args: { caso: string }, ctx: Ctx): Promise<string> {
+    try {
+      const a = { caso: args.caso }
+      const p = await paso(ctx, "oc_leer_paquete", a, () => leer_paquete.execute(a, ctx))
+      if (!p.ok) return fallo(p.error ?? "No se pudo leer el paquete")
+      const v = await paso(ctx, "oc_validar", a, () => validar.execute(a, ctx))
+      if (!v.ok || !v.data) return fallo(v.error ?? "No se pudo validar")
+      const { apta, bloqueos, confirmaciones, derivados, retroactiva } = v.data as { apta: boolean; bloqueos: unknown[]; confirmaciones: unknown[]; derivados: unknown; retroactiva: boolean }
+      const base = { caso: args.caso, apta, retroactiva, bloqueos, confirmaciones, derivados, requiere_confirmacion: apta && confirmaciones.length > 0 }
+      if (!apta) return ok({ ...base, siguiente_paso: "No crear la OC: explicar los bloqueos y la acción sugerida." })
+      const c = await paso(ctx, "oc_construir_payload", a, () => construir_payload.execute(a, ctx))
+      if (!c.ok || !c.data) return fallo(c.error ?? "No se pudo construir la OC")
+      const e = await paso(ctx, "oc_generar_evidencia", a, () => generar_evidencia.execute(a, ctx))
+      const orden = c.data.orden as OrdenCompra
+      const pos = orden.posiciones[0]
+      return ok({
+        ...base,
+        oc: {
+          proveedor: `${orden.proveedor.nombre} (${orden.proveedor.codigo_sap}, NIT ${orden.proveedor.nit})`,
+          descripcion: pos.descripcion,
+          cantidad: `${pos.cantidad} ${pos.unidad}`,
+          precio_unitario: pos.precio_unitario,
+          total: pos.cantidad * pos.precio_unitario,
+          moneda: orden.moneda,
+          centro_costo: `${pos.centro_costo} / ${pos.subarea}`,
+          indicador_iva: pos.indicador_iva,
+          condiciones_pago: orden.condiciones_pago,
+          aprobador: orden.aprobador.email,
+          cotizacion: orden.referencia.cotizacion_ref,
+        },
+        trazabilidad: c.data.ruta_trazabilidad,
+        evidencia: e.ok ? e.data?.ruta : null,
+        siguiente_paso: base.requiere_confirmacion
+          ? "Mostrar la OC y las confirmaciones y TERMINAR el turno preguntando si confirma. No llamar oc_crear."
+          : "Si la persona no pidió revisar antes, llamar oc_crear con este caso.",
+      })
+    } catch (e) {
+      return fallo(`No se pudo procesar ${args.caso}: ${mensajeError(e)}`)
+    }
+  },
 }

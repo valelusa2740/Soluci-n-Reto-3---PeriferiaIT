@@ -23,6 +23,8 @@ type RespuestaGemini = {
 export class GeminiAdapter implements LlmAdapter {
   readonly proveedor = "gemini"
   private contador = 0
+  /** Se pide el mínimo de "thinking" (latencia); si el modelo lo rechaza (400), se deja de enviar. */
+  private sinPensar = true
 
   constructor(
     readonly modelo: string,
@@ -39,7 +41,7 @@ export class GeminiAdapter implements LlmAdapter {
       systemInstruction: { parts: [{ text: o.system }] },
       contents: aGemini(mensajes),
       tools: [{ functionDeclarations: herramientas.map((h) => ({ name: h.nombre, description: h.descripcion, parametersJsonSchema: sinMeta(h.esquema) })) }],
-      generationConfig: { maxOutputTokens: o.maxTokens, temperature: 0 },
+      generationConfig: { maxOutputTokens: o.maxTokens, temperature: 0, ...(this.sinPensar ? { thinkingConfig: configPensamiento(this.modelo) } : {}) },
     }
     const json = await this.pedirConReintentos(cuerpo, o.timeoutMs)
     const candidato = json.candidates?.[0]
@@ -67,6 +69,13 @@ export class GeminiAdapter implements LlmAdapter {
         try {
           const res = await this.pedir(modelo, cuerpo, timeoutMs)
           if (res.ok) return (await res.json()) as RespuestaGemini
+          if (res.status === 400 && this.sinPensar && cuerpo && typeof cuerpo === "object") {
+            this.sinPensar = false
+            const gc = (cuerpo as { generationConfig: Record<string, unknown> }).generationConfig
+            delete gc.thinkingConfig
+            intento--
+            continue
+          }
           ultimo = errorHttp(res.status)
           if (!esTransitorio(res.status)) throw ultimo
         } catch (e) {
@@ -102,6 +111,11 @@ export class GeminiAdapter implements LlmAdapter {
     if (p.text && !p.thought) return [{ tipo: "texto", texto: p.text }]
     return []
   }
+}
+
+/** Gemini 3 usa thinkingLevel; Gemini 2.x usa thinkingBudget (0 = sin pensar). */
+function configPensamiento(modelo: string): Record<string, unknown> {
+  return /gemini-[3-9]/.test(modelo) ? { thinkingLevel: "low" } : { thinkingBudget: 0 }
 }
 
 const esTransitorio = (status: number) => status === 429 || status >= 500

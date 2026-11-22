@@ -203,3 +203,21 @@ describe("Excepciones (HU-6, T1–T3)", () => {
     expect(lineas.map((l) => JSON.parse(l).herramienta)).toEqual(["oc_leer_paquete", "oc_validar", "oc_construir_payload", "oc_crear"])
   })
 })
+
+describe("oc_procesar (atajo determinista)", () => {
+  it("sol-004: un solo paso deja la OC lista, pide confirmación y no la crea", async () => {
+    const r = await llamar(entorno, "oc_procesar", { caso: "sol-004" })
+    expect(r.data).toMatchObject({ apta: true, requiere_confirmacion: true, oc: { total: 25000000, cantidad: "100 H" }, evidencia: "out/sol-004/aprobacion.txt" })
+    const log = (await readFile(path.join(entorno.directory, "out/log.jsonl"), "utf8")).trim().split("\n").map((l) => JSON.parse(l).herramienta)
+    expect(log).toEqual(["oc_leer_paquete", "oc_validar", "oc_construir_payload", "oc_generar_evidencia", "oc_procesar"])
+    await expect(readFile(path.join(entorno.directory, "out/sap/ordenes.jsonl"), "utf8")).rejects.toThrow()
+  })
+  it("sol-003: bloqueado, no arma OC", async () => {
+    const r = await llamar(entorno, "oc_procesar", { caso: "sol-003" })
+    expect(r.data).toMatchObject({ apta: false, requiere_confirmacion: false })
+    expect(r.data).not.toHaveProperty("oc")
+  })
+  it("sol-001: apta sin confirmaciones", async () => {
+    expect((await llamar(entorno, "oc_procesar", { caso: "sol-001" })).data).toMatchObject({ apta: true, requiere_confirmacion: false })
+  })
+})

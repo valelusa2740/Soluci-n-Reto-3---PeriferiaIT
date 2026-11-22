@@ -78,7 +78,7 @@ function parsear(resultado: string): { ok: boolean; data?: unknown; error?: stri
 function actualizarPendiente(s: Sesion, nombre: string, args: unknown, r: { ok: boolean; data?: unknown; error?: string }): void {
   const caso = typeof args === "object" && args && "caso" in args ? String((args as { caso: unknown }).caso) : null
   if (!caso) return
-  if (nombre === "oc_validar" && r.ok) {
+  if ((nombre === "oc_validar" || nombre === "oc_procesar") && r.ok) {
     const d = r.data as { apta: boolean; confirmaciones: { regla: string }[] }
     if (d.apta && d.confirmaciones.length) s.pendiente = { caso, reglas: d.confirmaciones.map((c) => c.regla) }
   }
