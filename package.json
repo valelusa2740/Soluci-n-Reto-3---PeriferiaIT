@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.5",
+    "pdf-lib": "^1.17.1",
     "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },

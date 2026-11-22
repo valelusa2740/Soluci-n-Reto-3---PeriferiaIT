@@ -120,7 +120,7 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 1. **Las herramientas releen los archivos del caso en vez de confiar en lo que manda el modelo.** El contrato del PRD pide `paquete`, `derivados` y `payload` como entrada. Se aceptan (opcionales), pero la validación y la creación siempre se hacen desde los archivos, y si difieren se informa en `advertencias`. *Descartado:* validar el objeto que manda el modelo, porque el modelo podría "arreglar" un monto (riesgo explícito del PRD §10) y además cuesta tokens reenviar paquetes grandes.
 2. **Confirmación validada por el servidor (`ctx.confirmacionHumana`)**, no solo un parámetro `confirmado`. *Descartado:* confiar en `confirmado=true` del modelo, que con una inyección de prompt podría autoconfirmarse. Costo: el host debe implementar la función (en el módulo, si no la provee, cuenta solo `confirmado`, y está documentado).
 3. **Reglas como funciones puras en código, no en el prompt.** Son deterministas, se prueban sin modelo y `demo.ts` las ejercita. *Descartado:* que el modelo aplique las reglas leyendo el conocimiento, porque no es determinista ni auditable.
-4. **REST directo a Gemini en vez del SDK.** Menos dependencias, control total de timeout, 429 y cabeceras (la clave va en `x-goog-api-key`, nunca en la URL). *Descartado:* el SDK oficial, por su peso y porque oculta detalles de reintento.
+4. **REST directo a Gemini en vez del SDK.** Dependencias de ejecución: `express`, `express-rate-limit`, `zod` (obligatorio), `pdf-lib` (evidencia PDF) y `tsx` (ejecutar TypeScript sin compilar). Menos dependencias, control total de timeout, 429 y cabeceras (la clave va en `x-goog-api-key`, nunca en la URL). *Descartado:* el SDK oficial, por su peso y porque oculta detalles de reintento.
 5. **Sesiones en memoria y SAP mock en archivos.** Cumple el PRD (sin BD) y es simple. *Trade-off:* en Render gratis, un reinicio pierde sesiones y `out/` (disco efímero).
 6. **Usuario y clave (HTTP Basic) en el link + límites.** *Descartado:* link abierto, porque cualquiera podría agotar la cuota del modelo.
 
@@ -142,7 +142,7 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 | HU-1 Leer paquete | Hecho | `oc_leer_paquete`, pruebas L1–L4 | Leer `.xlsx` / PDF reales (P1) |
 | HU-2 Validar | Hecho | RC1–RC10, `tests/reglas.test.ts` | Maestros en línea desde SAP |
 | HU-3 Payload | Hecho | zod 7.4 + `trazabilidad.json` | Mapeo OData real |
-| HU-4 Evidencia | Parcial | P0 `aprobacion.txt` + sha256 | P1 PDF (`pdf-lib`) |
+| HU-4 Evidencia | Hecho | P0 `aprobacion.txt` + sha256; P1 `aprobacion.pdf` (`pdf-lib`) | Firma digital / PDF/A |
 | HU-5 Crear OC | Hecho | SAP mock, idempotencia, `control.csv` | Adaptador SAP real (§6) |
 | HU-6 Errores | Hecho | Pruebas de excepciones; 429, timeout | Alertas y monitoreo |
 | Chat + API + topes | Hecho | `web/`, `/api/*`, `tests/ciclo.test.ts` | Autenticación por usuario y roles, sesiones persistentes |

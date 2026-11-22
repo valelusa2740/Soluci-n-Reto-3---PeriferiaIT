@@ -10,7 +10,9 @@ import { leerPaquete } from "../core/paquete.js"
 import { construirOrden, textoEvidencia } from "../core/payload.js"
 import { validarPaquete } from "../core/reglas.js"
 import { CASO_REGEX, type Ctx, rutas } from "../core/rutas.js"
+import { pdfEvidencia } from "../core/pdf.js"
 import { escribirArchivo, registrarControl } from "../core/salidas.js"
+import { writeFile } from "node:fs/promises"
 import type { OrdenCompra, Paquete, Validacion } from "../core/tipos.js"
 import { jsonEstable, mensajeError, sha256 } from "../core/util.js"
 import { SapMock } from "../sap/mock.js"
@@ -104,7 +106,7 @@ export const construir_payload = {
 }
 
 export const generar_evidencia = {
-  description: "Genera la evidencia del correo de aprobación (out/<caso>/aprobacion.txt) con su sha256 para adjuntarla a la OC.",
+  description: "Genera la evidencia del correo de aprobación (out/<caso>/aprobacion.txt y .pdf) con su sha256 para adjuntarla a la OC.",
   args: { caso },
   async execute(args: { caso: string }, ctx: Ctx): Promise<string> {
     try {
@@ -114,7 +116,9 @@ export const generar_evidencia = {
       if (!texto) return fallo(`${args.caso}: no hay correo de aprobación; pide al solicitante la aprobación del líder.`)
       const archivo = path.join(rutas(ctx).outCaso(args.caso), "aprobacion.txt")
       await escribirArchivo(archivo, texto)
-      return ok({ ruta: relativa(ctx, archivo), sha256: sha256(texto) })
+      const pdf = path.join(rutas(ctx).outCaso(args.caso), "aprobacion.pdf")
+      await writeFile(pdf, await pdfEvidencia(texto))
+      return ok({ ruta: relativa(ctx, archivo), ruta_pdf: relativa(ctx, pdf), sha256: sha256(texto) })
     } catch (e) {
       return fallo(`No se pudo generar la evidencia de ${args.caso}: ${mensajeError(e)}`)
     }

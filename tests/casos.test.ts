@@ -125,6 +125,8 @@ describe("Payload, trazabilidad y evidencia (SPEC §6)", () => {
     const d = ev.data as { ruta: string; sha256: string }
     const texto = await readFile(path.join(entorno.directory, d.ruta), "utf8")
     expect(texto).toContain("De: mlopez@periferia-ficticia.com")
+    const pdf = await readFile(path.join(entorno.directory, (ev.data as { ruta_pdf: string }).ruta_pdf))
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-")
     expect(texto).toContain("Asunto: RE: Solicitud de orden de compra SOL-001")
     const r = await procesar(entorno, "sol-001")
     expect((r.payload?.data as { orden: { aprobador: { evidencia_sha256: string } } }).orden.aprobador.evidencia_sha256).toBe(d.sha256)
