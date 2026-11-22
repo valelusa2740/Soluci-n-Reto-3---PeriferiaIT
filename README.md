@@ -2,9 +2,13 @@
 
 Agente conversacional en TypeScript que lee el paquete de una solicitud de compra, lo valida contra los maestros (reglas RC1–RC10), arma la OC tal como quedaría en SAP, genera la evidencia de aprobación y la crea en un SAP simulado. Lo que no cumple control se bloquea; las dudas se convierten en confirmaciones humanas.
 
-- **Link de prueba:** `PENDIENTE (Render)`
-- **Acceso al link:** usuario `PENDIENTE` · clave `PENDIENTE` (HTTP Basic; el navegador la pide al abrir)
-- Especificación: [`SPEC.md`](SPEC.md) · Planteamiento: [`SOLUCION.md`](SOLUCION.md) · PRD: [`docs/PRD.md`](docs/PRD.md)
+## Link de prueba y acceso
+
+- **URL:** `PENDIENTE (Render)`
+- **Usuario:** `PENDIENTE` · **Clave:** `PENDIENTE` (el navegador los pide al abrir el link; protegen la cuota del modelo)
+- El plan gratuito de Render se duerme tras 15 minutos sin uso: el primer acceso puede tardar ~1 minuto.
+
+Documentos: especificación [`SPEC.md`](SPEC.md) · Planteamiento: [`SOLUCION.md`](SOLUCION.md) · PRD: [`docs/PRD.md`](docs/PRD.md)
 
 ## Levantar en local (un comando)
 
@@ -14,7 +18,9 @@ Requisitos: Node 20+ (o Bun).
 npm install && npm run dev        # http://localhost:3000
 ```
 
-Sin variables de entorno arranca con el proveedor `local` (determinista, sin modelo ni clave). Para usar Gemini, copia `.env.example` a `.env` o exporta las variables:
+Sin variables de entorno arranca con el proveedor `local` (determinista, sin modelo ni clave). Para usar Gemini, define las variables (ver `.env.example`).
+
+## Variables de entorno
 
 | Variable | Para qué | Ejemplo |
 |---|---|---|
@@ -27,7 +33,7 @@ Sin variables de entorno arranca con el proveedor `local` (determinista, sin mod
 | `LLM_TIMEOUT_MS` | Timeout al proveedor | `60000` |
 | `MAX_PETICIONES_MINUTO` | Límite de peticiones por IP | `10` |
 
-## Verificación sin modelo
+## Cómo correr demo.ts (verificación sin modelo)
 
 ```bash
 npm run demo          # o: bun run demo.ts

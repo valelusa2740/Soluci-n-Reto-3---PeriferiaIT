@@ -1,6 +1,6 @@
 # SOLUCIÓN — Agente "Órdenes de Compra SAP" (Reto 03)
 
-## 1. Problema en una frase
+## 1. Problema en una frase y a quién le duele
 
 La analista administrativa digita a mano cada orden de compra en SAP y valida de memoria si quien aprueba puede aprobar ese monto en ese centro de costo. Eso cuesta tiempo, deja pasar errores y no permite medir las OC que se crean después de la factura. Les duele a la analista (tiempo), a contabilidad y auditoría (control) y a la dirección (no tiene la medición).
 
@@ -105,15 +105,22 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 
 **Plan B (si la conexión no es viable):** el agente igual hace todo el trabajo de validación y genera **(a)** la OC lista para pegar (tabla campo → valor en el orden de la transacción ME21N) y **(b)** un archivo de carga masiva (CSV/LSMW o plantilla de *Migration Cockpit*) con las OC aptas y confirmadas del día, más el PDF de aprobación. La analista solo carga el archivo y registra el número. Se mantiene el control y la medición de retroactivas.
 
-## 7. Lectura del proceso (BORRADOR — lo redacta Valentina y lo revisamos juntas)
+## 7. Lectura del proceso: OC retroactivas
 
-> _Borrador de apoyo, para reemplazar por la redacción de Valentina._
->
-> En los fixtures, 1 de 6 solicitudes (sol-005) llega con la factura emitida antes de la solicitud (FC-88231 del 10-ago vs solicitud del 27-ago), y el correo del aprobador lo dice: "Ya llegó la factura, por favor crear la OC para poder radicarla". La OC se está usando para **radicar** una factura y no para **autorizar** un gasto. El control previo (cotización vs solicitud, aprobador con tope) llega tarde, cuando el compromiso con el proveedor ya existe.
->
-> Qué le diría a la dirección: (1) el agente ya mide el desvío: cada OC retroactiva queda marcada en `control.csv` y se puede reportar el % por mes, por centro de costo y por proveedor; (2) la política (tolerar con marca o rechazar) es de la dirección. Propongo empezar tolerándola con marca y justificación obligatoria, y pasar a bloqueo por encima de un umbral.
->
-> Cambio de proceso propuesto: OC obligatoria antes de comprar ("no PO, no pay"); que cuentas por pagar rechace facturas sin OC previa; comunicar a los proveedores recurrentes que su factura debe citar la OC; y revisar mensualmente los casos retroactivos con los líderes que más los generan.
+> **BORRADOR** para que Valentina lo edite con sus palabras.
+
+**Qué está pasando.** En 1 de las 6 solicitudes del lote (≈17 %), sol-005, la factura FC-88231 se emitió el 10 de agosto y la solicitud se hizo el 27 de agosto, 17 días después. El correo del aprobador lo confirma: "Ya llegó la factura, por favor crear la OC para poder radicarla". En ese caso la OC no sirvió para **autorizar** el gasto antes de comprometerlo. Se usó para **legalizar** una factura que ya existía. La cotización, la comparación de precios y la validación del aprobador llegan cuando el proveedor ya entregó y facturó, así que el control pierde su valor preventivo.
+
+**Qué le diría a la dirección.**
+1. Ya se puede medir. Cada OC retroactiva queda marcada (`retroactiva = true`) en `out/control.csv`, con fecha, centro de costo y proveedor. Con eso se arma un indicador mensual: % de OC retroactivas por centro de costo, por aprobador y por proveedor.
+2. El riesgo no es administrativo. Es de control: compras sin precio negociado, sin verificar que el aprobador tenga tope y, sobre todo, sin presupuesto comprometido a tiempo. Eso distorsiona el cierre contable.
+3. La política es una decisión de la dirección. Propongo una transición en dos pasos. Primero, **tolerar con marca y justificación obligatoria** (el agente ya exige confirmación explícita). Después, cuando el indicador baje de una meta acordada (por ejemplo < 5 %), **rechazar** las retroactivas que superen un monto definido, salvo urgencia aprobada por la gerencia.
+
+**Cambio de proceso que propondría.**
+- **"Sin OC no hay pago":** cuentas por pagar no radica facturas sin una OC creada **antes** de la fecha de la factura.
+- **OC primero:** que el agente procese la solicitud apenas llega el correo, y no cuando aparece la factura. Así crear la OC toma minutos y deja de ser una excusa.
+- **Proveedores informados:** comunicar a los proveedores recurrentes que su factura debe citar el número de OC.
+- **Seguimiento:** revisión mensual del indicador con los líderes y centros que más retroactivas generan, con planes concretos (por ejemplo, contratos marco u OC abiertas para compras recurrentes como papelería).
 
 ## 8. Decisiones y trade-offs
 
@@ -155,7 +162,7 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 - **Lo que descartamos de lo propuesto:** (1) el esqueleto inicial, que validaba en el prompt y usaba `/api/confirm` con 409: se reemplazó por reglas en código y confirmación en el siguiente mensaje; (2) tomar el tope de fvargas de CC-3030 para sol-003; (3) comparar la fecha de aprobación en UTC; (4) rechazar `oc_crear` cuando el payload del modelo difiere: se prefirió crear el payload reconstruido y advertir, para no romper la conversación sin necesidad; (5) usar el SDK de Anthropic, que se cambió a Gemini por costo.
 - _Valentina: completa aquí cualquier otra IA que hayas usado (por ejemplo, ChatGPT para leer el PRD)._
 
-## 12. Riesgos y mitigación
+## 12. Riesgos de llevar esto a producción y cómo los mitigaría
 
 | Riesgo | Mitigación |
 |---|---|
