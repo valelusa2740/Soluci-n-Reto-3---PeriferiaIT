@@ -15,6 +15,8 @@ export type Limites = {
   maxTokensDia: number
   maxTokensRespuesta: number
   timeoutMs: number
+  /** Tiempo máximo total de un turno (el navegador y el proxy no esperan indefinidamente). */
+  maxMsTurno?: number
 }
 
 export type LlamadaVisible = { nombre: string; args: unknown; ok: boolean; resultado: unknown; ms: number }
@@ -123,8 +125,13 @@ export async function ejecutarTurno(s: Sesion, texto: string, deps: { llm: LlmAd
   const [system, herramientas] = [await systemPrompt(directory), definicionesParaModelo()]
 
   try {
+    const limiteTurno = Date.now() + (limites.maxMsTurno ?? 100_000)
     for (let i = 0; i < limites.maxIteraciones; i++) {
-      const r = await llm.enviar(s.mensajes, herramientas, { system, timeoutMs: limites.timeoutMs, maxTokens: limites.maxTokensRespuesta })
+      const restante = limiteTurno - Date.now()
+      if (restante < 3_000) {
+        return responder(`El modelo está respondiendo muy lento y alcancé el tiempo máximo del turno. Lo hecho está en las llamadas a herramientas de arriba; escribe "continúa" para seguir.`)
+      }
+      const r = await llm.enviar(s.mensajes, herramientas, { system, timeoutMs: Math.min(limites.timeoutMs, restante), maxTokens: limites.maxTokensRespuesta })
       const usados = r.uso.entrada + r.uso.salida
       s.tokens += usados
       consumoDiario.tokens += usados

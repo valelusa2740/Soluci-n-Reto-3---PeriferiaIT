@@ -11,7 +11,8 @@ const limites: Limites = {
   maxTokensSesion: num(env.MAX_TOKENS_SESION, 150_000),
   maxTokensDia: num(env.MAX_TOKENS_DIA, 2_000_000),
   maxTokensRespuesta: num(env.MAX_TOKENS_RESPUESTA, 2_000),
-  timeoutMs: num(env.LLM_TIMEOUT_MS, 60_000),
+  timeoutMs: num(env.LLM_TIMEOUT_MS, 30_000),
+  maxMsTurno: num(env.MAX_MS_TURNO, 100_000),
 }
 
 const { ACCESS_USER, ACCESS_PASS } = env
@@ -26,6 +27,10 @@ if (env.NODE_ENV === "production") {
   }
 }
 
+// Un error no previsto nunca tumba el proceso (evita respuestas 502 del proxy de Render).
+process.on("unhandledRejection", () => console.error("Promesa rechazada sin manejar (detalle omitido)"))
+process.on("uncaughtException", (e) => console.error("Excepción no capturada:", e.name))
+
 const llm = crearLlm(env)
 const app = crearApp({
   directory: path.resolve(env.PROJECT_DIR ?? process.cwd()),
@@ -35,4 +40,6 @@ const app = crearApp({
   peticionesPorMinuto: num(env.MAX_PETICIONES_MINUTO, 10),
 })
 const puerto = num(env.PORT, 3000)
-app.listen(puerto, () => console.log(`Agente OC en el puerto ${puerto} · LLM: ${llm.proveedor}/${llm.modelo} · acceso ${ACCESS_USER ? "protegido" : "abierto (solo local)"}`))
+const servidor = app.listen(puerto, () => console.log(`Agente OC en el puerto ${puerto} · LLM: ${llm.proveedor}/${llm.modelo} · acceso ${ACCESS_USER ? "protegido" : "abierto (solo local)"}`))
+servidor.requestTimeout = 0 // el turno tiene su propio límite (MAX_MS_TURNO)
+servidor.keepAliveTimeout = 120_000

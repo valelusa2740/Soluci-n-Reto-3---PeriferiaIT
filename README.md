@@ -32,7 +32,8 @@ Sin variables de entorno arranca con el proveedor `local` (determinista, sin mod
 | `ACCESS_USER` / `ACCESS_PASS` | Usuario y clave del link (obligatorios en producción; clave ≥ 10 caracteres) | — |
 | `MAX_ITERACIONES` | Tope de pasos modelo→herramientas por turno | `25` |
 | `MAX_TOKENS_SESION` / `MAX_TOKENS_DIA` | Topes de costo por sesión y global diario | `150000` / `2000000` |
-| `LLM_TIMEOUT_MS` | Timeout al proveedor | `60000` |
+| `LLM_TIMEOUT_MS` | Timeout por llamada al proveedor | `30000` |
+| `MAX_MS_TURNO` | Tiempo máximo total de un turno del chat | `100000` |
 | `MAX_PETICIONES_MINUTO` | Límite de peticiones por IP | `10` |
 
 ## Cómo correr demo.ts (verificación sin modelo)

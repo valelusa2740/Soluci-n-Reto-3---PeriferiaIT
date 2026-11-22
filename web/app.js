@@ -70,7 +70,11 @@ async function enviar(texto) {
   input.disabled = enviarBtn.disabled = true
   try {
     const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId, message: texto }) })
-    const data = await r.json().catch(() => ({ error: "Respuesta inválida del servidor" }))
+    const crudo = await r.text()
+    let data
+    try { data = JSON.parse(crudo) } catch {
+      data = { error: r.status === 401 ? "Tu sesión de acceso expiró: recarga la página e ingresa usuario y clave." : `El servidor respondió ${r.status} sin datos válidos (posible reinicio o despliegue en curso en Render). Espera un minuto e intenta de nuevo.` }
+    }
     pensando.remove()
     if (!r.ok) return void agregar(div("msg bot confirm", "⚠️ " + esc(data.error || "Error " + r.status)))
     ;(data.toolCalls || []).forEach(pintarHerramienta)

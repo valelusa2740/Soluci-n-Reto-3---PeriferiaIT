@@ -100,6 +100,19 @@ describe("Ciclo del agente", () => {
     expect(enviado.tipo === "texto" && enviado.texto).toContain("CONFIRMÓ el caso sol-005")
   })
 
+  it("tiempo máximo del turno: corta con mensaje claro en vez de colgar la petición", async () => {
+    const lento: LlmAdapter = {
+      proveedor: "test",
+      modelo: "lento",
+      enviar: async () => {
+        await new Promise((r) => setTimeout(r, 30))
+        return { bloques: [llamada("oc_leer_paquete", { caso: "sol-001" }, crypto.randomUUID())], uso: { entrada: 1, salida: 0 } }
+      },
+    }
+    const r = await ejecutarTurno(nuevaSesion("s"), "procesa sol-001", { llm: lento, directory: entorno.directory, limites: { ...limites, maxMsTurno: 3_050 } })
+    expect(r.reply).toContain("tiempo máximo del turno")
+  })
+
   it("detecta confirmaciones y negaciones", () => {
     for (const t of ["confirmo", "Sí, créala", "Confirmo, crea la OC de sol-004.", "dale"]) expect(esConfirmacion(t)).toBe(true)
     for (const t of ["No, no la crees", "no confirmo", "espera", "¿qué es RC5?"]) expect(esConfirmacion(t)).toBe(false)
