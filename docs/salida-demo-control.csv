@@ -1,0 +1,11 @@
+solicitud_id,resultado,numero_oc,retroactiva,bloqueos,confirmaciones,ts
+SOL-2026-001,creada,4500000001,false,,,2026-11-22T22:16:37.165Z
+SOL-2026-001,idempotente,4500000001,false,,,2026-11-22T22:16:37.178Z
+SOL-2026-002,bloqueada,,false,RC1,,2026-11-22T22:16:37.183Z
+SOL-2026-003,bloqueada,,false,RC2|RC3,,2026-11-22T22:16:37.193Z
+SOL-2026-004,pendiente_confirmacion,,false,,RC5,2026-11-22T22:16:37.206Z
+SOL-2026-004,creada,4500000002,false,,RC5,2026-11-22T22:16:37.220Z
+SOL-2026-005,pendiente_confirmacion,,true,,RC8,2026-11-22T22:16:37.231Z
+SOL-2026-005,creada,4500000003,true,,RC8,2026-11-22T22:16:37.245Z
+SOL-2026-006,pendiente_confirmacion,,false,,RC6,2026-11-22T22:16:37.257Z
+SOL-2026-006,creada,4500000004,false,,RC6,2026-11-22T22:16:37.270Z

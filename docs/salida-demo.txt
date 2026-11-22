@@ -1,0 +1,82 @@
+Demo sin modelo — Agente Órdenes de Compra SAP (out/ limpio)
+
+▶ sol-001
+  apta: true · retroactiva: false
+  bloqueos: —
+  confirmaciones: —
+  evidencia: out/sol-001/aprobacion.txt (sha256 fb91c3b8a2b2…)
+  ✔ OC 4500000001 creada
+
+▶ sol-001
+  apta: true · retroactiva: false
+  bloqueos: —
+  confirmaciones: —
+  evidencia: out/sol-001/aprobacion.txt (sha256 fb91c3b8a2b2…)
+  ✔ OC 4500000001 (idempotente: ya existía, no se duplicó)
+
+▶ sol-002
+  apta: false · retroactiva: false
+  bloqueos:
+      - RC1: El proveedor (NIT 901999000) no existe en el maestro de proveedores.
+  confirmaciones: —
+  ✗ No creada: OC NO creada para sol-002 por bloqueos: RC1: El proveedor (NIT 901999000) no existe en el maestro de proveedores. Acción: Solicitar la creación del proveedor en SAP (datos maestros) o elegir un proveedor registrado.
+
+▶ sol-003
+  apta: false · retroactiva: false
+  bloqueos:
+      - RC2: fvargas@periferia-ficticia.com no es aprobador del centro CC-2020. Aprobadores válidos: rtorres@periferia-ficticia.com.
+      - RC3: fvargas@periferia-ficticia.com no tiene tope en CC-2020; un tope en otro centro no aplica. Valor 74.000.000.
+  confirmaciones: —
+  ✗ No creada: OC NO creada para sol-003 por bloqueos: RC2: fvargas@periferia-ficticia.com no es aprobador del centro CC-2020. Aprobadores válidos: rtorres@periferia-ficticia.com. Acción: Pedir la aprobación a un aprobador de CC-2020. | RC3: fvargas@periferia-ficticia.com no tiene tope en CC-2020; un tope en otro centro no aplica. Valor 74.000.000. Acción: Ningún aprobador de CC-2020 cubre 74.000.000 (tope máximo 30.000.000): escalar o ajustar la matriz.
+
+▶ sol-004
+  apta: true · retroactiva: false
+  bloqueos: —
+  confirmaciones:
+      - RC5: La cotización (26.500.000) difiere 6.0 % de la solicitud (25.000.000); tolerancia 2 %. La OC se crea por el valor de la solicitud.
+  evidencia: out/sol-004/aprobacion.txt (sha256 4637d935863a…)
+  ✗ No creada: REQUIERE_CONFIRMACION: la OC de sol-004 tiene confirmaciones pendientes (RC5: La cotización (26.500.000) difiere 6.0 % de la solicitud (25.000.000); tolerancia 2 %. La OC se crea por el valor de la solicitud.). Pregunta a la persona y espera que confirme en su siguiente mensaje.
+
+▶ sol-004 (con confirmación explícita de la analista)
+  apta: true · retroactiva: false
+  bloqueos: —
+  confirmaciones:
+      - RC5: La cotización (26.500.000) difiere 6.0 % de la solicitud (25.000.000); tolerancia 2 %. La OC se crea por el valor de la solicitud.
+  evidencia: out/sol-004/aprobacion.txt (sha256 4637d935863a…)
+  ✔ OC 4500000002 creada
+
+▶ sol-005
+  apta: true · retroactiva: true
+  bloqueos: —
+  confirmaciones:
+      - RC8: OC retroactiva: la factura FC-88231 (2026-08-10) es anterior a la solicitud (2026-08-27). Quedará marcada en el control.
+  evidencia: out/sol-005/aprobacion.txt (sha256 84be836c3b1c…)
+  ✗ No creada: REQUIERE_CONFIRMACION: la OC de sol-005 tiene confirmaciones pendientes (RC8: OC retroactiva: la factura FC-88231 (2026-08-10) es anterior a la solicitud (2026-08-27). Quedará marcada en el control.). Pregunta a la persona y espera que confirme en su siguiente mensaje.
+
+▶ sol-005 (con confirmación explícita de la analista)
+  apta: true · retroactiva: true
+  bloqueos: —
+  confirmaciones:
+      - RC8: OC retroactiva: la factura FC-88231 (2026-08-10) es anterior a la solicitud (2026-08-27). Quedará marcada en el control.
+  evidencia: out/sol-005/aprobacion.txt (sha256 84be836c3b1c…)
+  ✔ OC 4500000003 creada
+
+▶ sol-006
+  apta: true · retroactiva: false
+  bloqueos: —
+  confirmaciones:
+      - RC6: La solicitud no trae indicador de IVA; se propone C1 (por defecto del proveedor TecnoSuministros S.A.S.).
+  derivados: {"indicador_iva":"C1","condiciones_pago":"Z030"}
+  evidencia: out/sol-006/aprobacion.txt (sha256 63ccbf28ec56…)
+  ✗ No creada: REQUIERE_CONFIRMACION: la OC de sol-006 tiene confirmaciones pendientes (RC6: La solicitud no trae indicador de IVA; se propone C1 (por defecto del proveedor TecnoSuministros S.A.S.).). Pregunta a la persona y espera que confirme en su siguiente mensaje.
+
+▶ sol-006 (con confirmación explícita de la analista)
+  apta: true · retroactiva: false
+  bloqueos: —
+  confirmaciones:
+      - RC6: La solicitud no trae indicador de IVA; se propone C1 (por defecto del proveedor TecnoSuministros S.A.S.).
+  derivados: {"indicador_iva":"C1","condiciones_pago":"Z030"}
+  evidencia: out/sol-006/aprobacion.txt (sha256 63ccbf28ec56…)
+  ✔ OC 4500000004 creada
+
+Salidas: out/control.csv · out/log.jsonl · out/sap/ordenes.jsonl · out/<caso>/{trazabilidad.json,aprobacion.txt}

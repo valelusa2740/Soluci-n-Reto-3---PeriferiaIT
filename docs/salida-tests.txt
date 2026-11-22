@@ -1,0 +1,113 @@
+$ npm test
+
+ RUN  v5.1.1 /home/user/soluci-n-reto-3---periferiait
+
+ ✓ tests/ciclo.test.ts > Ciclo del agente > A1 respeta el tope de iteraciones 43ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > A2 tope de tokens por sesión: no vuelve a llamar al modelo 12ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > A3/A4 timeout del proveedor: mensaje claro y la sesión sigue 25ms
+ ✓ tests/casos.test.ts > Resultado esperado por caso (SPEC §5) > sol-001: apta, se crea sin intervención y la 2.ª vez es idempotente 46ms
+ ✓ tests/casos.test.ts > Resultado esperado por caso (SPEC §5) > sol-002: bloqueo RC1, no crea 16ms
+ ✓ tests/casos.test.ts > Resultado esperado por caso (SPEC §5) > sol-003: bloqueos RC2 y RC3, no crea 21ms
+ ✓ tests/seguridad.test.ts > Control de acceso > sin credenciales → 401 en el chat, la API y el front 42ms
+ ✓ tests/seguridad.test.ts > Control de acceso > credenciales incorrectas → 401 3ms
+ ✓ tests/seguridad.test.ts > Control de acceso > credenciales correctas → 200 6ms
+ ✓ tests/seguridad.test.ts > Control de acceso > health es público pero no expone claves 3ms
+ ✓ tests/seguridad.test.ts > Cabeceras y superficie > CSP estricta, anti-iframe, nosniff, sin x-powered-by ni CORS 2ms
+ ✓ tests/seguridad.test.ts > Cabeceras y superficie > no sirve archivos fuera de web/ (path traversal en la URL) 6ms
+ ✓ tests/seguridad.test.ts > Validación de entradas > cuerpo enorme → 413 genérico, sin traza 3ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > C4 el modelo no puede autoconfirmar: oc_crear con confirmado=true sin confirmación de la persona falla 36ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > CA3 solo el SIGUIENTE mensaje confirma; un mensaje intermedio anula la confirmación 51ms
+ ✓ tests/casos.test.ts > Resultado esperado por caso (SPEC §5) > sol-004: confirmación RC5; sin confirmación queda pendiente 17ms
+ ✓ tests/casos.test.ts > Resultado esperado por caso (SPEC §5) > sol-004: con confirmación humana se crea y registra quién confirmó 19ms
+ ✓ tests/casos.test.ts > Resultado esperado por caso (SPEC §5) > sol-005: retroactiva solo con confirmación y marcada en control.csv 60ms
+ ✓ tests/seguridad.test.ts > Validación de entradas > JSON malformado → 400 genérico 13ms
+ ✓ tests/seguridad.test.ts > Validación de entradas > sessionId que no es uuid, campos extra o mensaje vacío → 400 8ms
+ ✓ tests/seguridad.test.ts > La clave del modelo nunca se expone > ni en respuestas del chat, ni en el historial, ni en out/log.jsonl, ni en la consola 15ms
+ ✓ tests/seguridad.test.ts > La clave del modelo nunca se expone > el log minimiza datos: objetos omitidos y correos enmascarados 0ms
+ ✓ tests/seguridad.test.ts > Límite de peticiones > al superar el límite por minuto responde 429 12ms
+ ✓ tests/casos.test.ts > Resultado esperado por caso (SPEC §5) > sol-006: proveedor por nombre, deriva C1 (confirmación) y Z030 37ms
+ ✓ tests/casos.test.ts > Confirmación humana validada por el servidor (C4) > el modelo no puede confirmar solo: confirmado=true sin certificación del host no crea 45ms
+ ✓ tests/casos.test.ts > Confirmación humana validada por el servidor (C4) > la confirmación de un caso no vale para otro 34ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > flujo completo sol-004 con el proveedor local: pregunta, confirmo, OC creada 73ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > el servidor le avisa al modelo cuándo la persona confirmó 35ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > tiempo máximo del turno: corta con mensaje claro en vez de colgar la petición 102ms
+ ✓ tests/ciclo.test.ts > Ciclo del agente > detecta confirmaciones y negaciones 22ms
+ ✓ tests/casos.test.ts > Confirmación humana validada por el servidor (C4) > un bloqueo no se salta con confirmación 25ms
+ ✓ tests/casos.test.ts > Payload, trazabilidad y evidencia (SPEC §6) > P1–P3 el payload valida con zod, descripción ≤ 40 y trazabilidad en archivo 40ms
+ ✓ tests/reglas.test.ts > L — lectura y normalización > L1 normaliza NIT con puntos y dígito de verificación 2ms
+ ✓ tests/reglas.test.ts > L — lectura y normalización > L2 convierte montos en formato colombiano 1ms
+ ✓ tests/reglas.test.ts > L — lectura y normalización > L4 detecta 'Aprobado' y rechaza negaciones 0ms
+ ✓ tests/reglas.test.ts > L — lectura y normalización > normaliza nombres sin tildes ni puntuación 0ms
+ ✓ tests/reglas.test.ts > L — lectura y normalización > diaLocal usa el día del correo, no UTC 0ms
+ ✓ tests/reglas.test.ts > RC1 proveedor existe y activo (bloqueo) > positivo: sol-001 por NIT 1ms
+ ✓ tests/reglas.test.ts > RC1 proveedor existe y activo (bloqueo) > positivo: sol-006 sin NIT, por nombre normalizado 1ms
+ ✓ tests/reglas.test.ts > RC1 proveedor existe y activo (bloqueo) > negativo: sol-002 NIT inexistente 0ms
+ ✓ tests/reglas.test.ts > RC1 proveedor existe y activo (bloqueo) > negativo: proveedor inactivo 1ms
+ ✓ tests/reglas.test.ts > RC1 proveedor existe y activo (bloqueo) > excepción: sin NIT y nombre desconocido 0ms
+ ✓ tests/reglas.test.ts > RC2 aprobación válida del centro (bloqueo) > positivo: sol-001 mlopez aprueba CC-1010 0ms
+ ✓ tests/reglas.test.ts > RC2 aprobación válida del centro (bloqueo) > negativo: sol-003 fvargas no es aprobador de CC-2020 15ms
+ ✓ tests/reglas.test.ts > RC2 aprobación válida del centro (bloqueo) > negativo: cuerpo sin 'Aprobado' 0ms
+ ✓ tests/reglas.test.ts > RC2 aprobación válida del centro (bloqueo) > excepción: sin correo de aprobación 0ms
+ ✓ tests/reglas.test.ts > RC3 tope del aprobador en ESE centro (bloqueo) > positivo: sol-004 25M ≤ 200M de dgarcia 0ms
+ ✓ tests/reglas.test.ts > RC3 tope del aprobador en ESE centro (bloqueo) > negativo: sol-003 el tope de 80M de fvargas es de CC-3030 y no aplica en CC-2020 0ms
+ ✓ tests/reglas.test.ts > RC3 tope del aprobador en ESE centro (bloqueo) > negativo: monto mayor al tope del aprobador correcto 0ms
+ ✓ tests/reglas.test.ts > RC4 subárea del centro (bloqueo) > positivo: todos los casos reales 1ms
+ ✓ tests/reglas.test.ts > RC4 subárea del centro (bloqueo) > negativo: subárea de otro centro 0ms
+ ✓ tests/reglas.test.ts > RC5 cotización vs solicitud ≤ 2 % (confirmación) > positivo: sol-001 sin desvío 0ms
+ ✓ tests/reglas.test.ts > RC5 cotización vs solicitud ≤ 2 % (confirmación) > positivo: desvío de 1,5 % se tolera 0ms
+ ✓ tests/reglas.test.ts > RC5 cotización vs solicitud ≤ 2 % (confirmación) > negativo: sol-004 6 % muestra ambos valores 0ms
+ ✓ tests/reglas.test.ts > RC5 cotización vs solicitud ≤ 2 % (confirmación) > excepción: sin cotización pide confirmación 0ms
+ ✓ tests/reglas.test.ts > RC6/RC7 derivados del proveedor > positivo: sol-001 trae IVA y pago, no deriva 0ms
+ ✓ tests/reglas.test.ts > RC6/RC7 derivados del proveedor > negativo: sol-006 deriva C1 (confirmación) y Z030 (solo informa) 0ms
+ ✓ tests/reglas.test.ts > RC8 factura anterior a la solicitud → retroactiva (confirmación) > positivo: sol-001 sin factura 0ms
+ ✓ tests/reglas.test.ts > RC8 factura anterior a la solicitud → retroactiva (confirmación) > negativo: sol-005 FC-88231 del 10-ago < 27-ago 0ms
+ ✓ tests/reglas.test.ts > RC8 factura anterior a la solicitud → retroactiva (confirmación) > factura posterior no es retroactiva 0ms
+ ✓ tests/reglas.test.ts > RC9 aprobación ≥ solicitud por día local (confirmación) > positivo: sol-004 aprobada el mismo día a las 18:45 -05:00 0ms
+ ✓ tests/reglas.test.ts > RC9 aprobación ≥ solicitud por día local (confirmación) > negativo: aprobación anterior a la solicitud 0ms
+ ✓ tests/reglas.test.ts > RC10 cantidad × valor unitario = total ±1 (bloqueo) > positivo: todos los casos reales 0ms
+ ✓ tests/reglas.test.ts > RC10 cantidad × valor unitario = total ±1 (bloqueo) > positivo: diferencia de 1 peso se tolera 0ms
+ ✓ tests/reglas.test.ts > RC10 cantidad × valor unitario = total ±1 (bloqueo) > negativo: total que no cuadra 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC3/RC4 centro de costo inexistente: bloqueo claro sin fallar 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC3 en el límite exacto del tope (= 50M) pasa 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC4 subárea con distinto uso de mayúsculas no pertenece (comparación exacta) 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC5 desvío exactamente en 2 % se tolera 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC6/RC7 sin IVA ni pago y proveedor inexistente: no se inventa derivado, bloquea RC1 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC8 factura del mismo día de la solicitud no es retroactiva 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC9 sin aprobación no genera RC9 (ya bloquea RC2) 0ms
+ ✓ tests/reglas.test.ts > Excepciones por regla (datos ausentes o límite) > RC10 diferencia de 2 pesos bloquea (fuera de ±1) 0ms
+ ✓ tests/casos.test.ts > Payload, trazabilidad y evidencia (SPEC §6) > unidad H para la bolsa de horas de sol-004 49ms
+ ✓ tests/casos.test.ts > Payload, trazabilidad y evidencia (SPEC §6) > E1 evidencia con encabezados y el mismo sha256 que el payload 71ms
+ ✓ tests/casos.test.ts > Payload, trazabilidad y evidencia (SPEC §6) > construir_payload con bloqueos devuelve error, no OC 29ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > convierte functionCall en llamada y conserva la firma; la clave va en cabecera, no en la URL 17ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > 429 → mensaje claro de límite 4ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > timeout → ErrorLlm timeout 21ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > functionResponse lleva el nombre de la llamada y devuelve la firma 1ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > 503 transitorio: reintenta con el mismo modelo y responde sin error 4ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > si el principal sigue saturado, cae al modelo de respaldo 3ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > si ambos fallan: mensaje claro de saturación 3ms
+ ✓ tests/gemini.test.ts > GeminiAdapter > errores no transitorios (401) no se reintentan 0ms
+ ✓ tests/gemini.test.ts > GeminiAdapter: latencia > pide thinking mínimo y, si el modelo lo rechaza (400), reintenta sin él 1ms
+ ✓ tests/casos.test.ts > Payload, trazabilidad y evidencia (SPEC §6) > V4 el modelo no puede alterar montos: se usa lo de los archivos y se advierte 23ms
+ ✓ tests/modulo.test.ts > modulo/ reutilizable > las herramientas son los mismos objetos que usa la app 2ms
+ ✓ tests/modulo.test.ts > modulo/ reutilizable > agent.md y SKILL.md están sincronizados con agent/prompt.md y src/knowledge (npm run modulo) 6ms
+ ✓ tests/casos.test.ts > Aislamiento entre casos (V2) y numeración SAP (C5) > validar en distinto orden da el mismo resultado 176ms
+ ✓ tests/casos.test.ts > Aislamiento entre casos (V2) y numeración SAP (C5) > números secuenciales desde 4500000001 y un caso malo no frena el siguiente 46ms
+ ✓ tests/casos.test.ts > Excepciones (HU-6, T1–T3) > caso inexistente 19ms
+ ✓ tests/casos.test.ts > Excepciones (HU-6, T1–T3) > T1 rechaza rutas fuera de fixtures 16ms
+ ✓ tests/casos.test.ts > Excepciones (HU-6, T1–T3) > T2 argumentos faltantes y herramienta desconocida 22ms
+ ✓ tests/casos.test.ts > Excepciones (HU-6, T1–T3) > JSON malformado 22ms
+ ✓ tests/casos.test.ts > Excepciones (HU-6, T1–T3) > monto no numérico 18ms
+ ✓ tests/casos.test.ts > Excepciones (HU-6, T1–T3) > L3 adjunto ausente se reporta como null y en faltantes 22ms
+ ✓ tests/casos.test.ts > Excepciones (HU-6, T1–T3) > T3 cada llamada queda en out/log.jsonl 28ms
+ ✓ tests/casos.test.ts > oc_procesar (atajo determinista) > sol-004: un solo paso deja la OC lista, pide confirmación y no la crea 25ms
+ ✓ tests/casos.test.ts > oc_procesar (atajo determinista) > sol-003: bloqueado, no arma OC 20ms
+ ✓ tests/casos.test.ts > oc_procesar (atajo determinista) > sol-001: apta sin confirmaciones 22ms
+
+ Test Files  6 passed (6)
+      Tests  100 passed (100)
+   Start at  22:16:34
+   Duration  1.25s (tests 68%, import 28%, transform 4%, worker 1%)
+
+
+$ npm run typecheck
+sin errores

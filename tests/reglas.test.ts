@@ -178,3 +178,38 @@ describe("RC10 cantidad × valor unitario = total ±1 (bloqueo)", () => {
     expect(reglas(validarPaquete(p, maestros).bloqueos)).toContain("RC10")
   })
 })
+
+describe("Excepciones por regla (datos ausentes o límite)", () => {
+  it("RC3/RC4 centro de costo inexistente: bloqueo claro sin fallar", () => {
+    const v = validarPaquete(con("sol-001", (x) => { x.solicitud.centro_costo = "CC-9999" }), maestros)
+    expect(v.apta).toBe(false)
+    expect(v.bloqueos.find((b) => b.regla === "RC2")?.detalle).toContain("CC-9999")
+    expect(reglas(v.bloqueos)).not.toContain("RC4")
+  })
+  it("RC3 en el límite exacto del tope (= 50M) pasa", () => {
+    const p = con("sol-001", (x) => { x.solicitud.cantidad = 500; x.solicitud.valor_unitario = 100000; x.solicitud.valor_total = 50000000; if (x.cotizacion) x.cotizacion.total = 50000000 })
+    expect(reglas(validarPaquete(p, maestros).bloqueos)).not.toContain("RC3")
+  })
+  it("RC4 subárea con distinto uso de mayúsculas no pertenece (comparación exacta)", () => {
+    expect(reglas(validarPaquete(con("sol-001", (x) => { x.solicitud.subarea = "infraestructura" }), maestros).bloqueos)).toContain("RC4")
+  })
+  it("RC5 desvío exactamente en 2 % se tolera", () => {
+    expect(reglas(validarPaquete(con("sol-001", (x) => { if (x.cotizacion) x.cotizacion.total = 11628000 }), maestros).confirmaciones)).not.toContain("RC5")
+  })
+  it("RC6/RC7 sin IVA ni pago y proveedor inexistente: no se inventa derivado, bloquea RC1", () => {
+    const v = validarPaquete(con("sol-006", (x) => { x.solicitud.proveedor_nombre = "Desconocido S.A.S." }), maestros)
+    expect(v.derivados).toEqual({})
+    expect(reglas(v.bloqueos)).toContain("RC1")
+  })
+  it("RC8 factura del mismo día de la solicitud no es retroactiva", () => {
+    expect(validarPaquete(con("sol-005", (x) => { if (x.factura) x.factura.fecha = "2026-08-27" }), maestros).retroactiva).toBe(false)
+  })
+  it("RC9 sin aprobación no genera RC9 (ya bloquea RC2)", () => {
+    const v = validarPaquete(con("sol-001", (x) => { x.aprobacion = null }), maestros)
+    expect(reglas(v.confirmaciones)).not.toContain("RC9")
+    expect(reglas(v.bloqueos)).toContain("RC2")
+  })
+  it("RC10 diferencia de 2 pesos bloquea (fuera de ±1)", () => {
+    expect(reglas(validarPaquete(con("sol-001", (x) => { x.solicitud.valor_total = 11400002 }), maestros).bloqueos)).toContain("RC10")
+  })
+})

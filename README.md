@@ -55,8 +55,10 @@ Limpia `out/`, procesa los 6 casos llamando directo a las herramientas e imprime
 
 ## Pruebas
 
+Salidas guardadas en el repo: [`docs/salida-demo.txt`](docs/salida-demo.txt), [`docs/salida-demo-control.csv`](docs/salida-demo-control.csv) (control.csv de la demo, con `retroactiva=true` en sol-005) y [`docs/salida-tests.txt`](docs/salida-tests.txt).
+
 ```bash
-npm test              # 92 pruebas: por regla, por caso, ciclo del agente, adaptador Gemini, seguridad, módulo
+npm test              # 100 pruebas: por regla, por caso, ciclo del agente, adaptador Gemini, seguridad, módulo
 npm run typecheck     # TypeScript estricto, sin any
 ```
 
