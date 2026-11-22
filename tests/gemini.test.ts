@@ -22,13 +22,13 @@ describe("GeminiAdapter", () => {
     expect(JSON.parse(body).tools[0].functionDeclarations[0].parametersJsonSchema.$schema).toBeUndefined()
   })
   it("429 → mensaje claro de límite", async () => {
-    const p = new GeminiAdapter("m", "k", respuesta(429, { error: { code: 429 } }), 1).enviar([], herramientas, opciones)
+    const p = new GeminiAdapter("m", "k", respuesta(429, { error: { code: 429 } }), [1]).enviar([], herramientas, opciones)
     await expect(p).rejects.toBeInstanceOf(ErrorLlm)
     await expect(p).rejects.toMatchObject({ tipo: "limite", message: expect.stringContaining("límite gratuito") })
   })
   it("timeout → ErrorLlm timeout", async () => {
     const lento = (async (_u: string, init: RequestInit) => new Promise((_r, rej) => init.signal?.addEventListener("abort", () => rej(Object.assign(new Error("t"), { name: "TimeoutError" }))))) as unknown as typeof fetch
-    await expect(new GeminiAdapter("m", "k", lento).enviar([], herramientas, { ...opciones, timeoutMs: 20 })).rejects.toMatchObject({ tipo: "timeout" })
+    await expect(new GeminiAdapter("m", "k", lento, []).enviar([], herramientas, { ...opciones, timeoutMs: 20 })).rejects.toMatchObject({ tipo: "timeout" })
   })
   it("functionResponse lleva el nombre de la llamada y devuelve la firma", () => {
     const m: Mensaje[] = [
@@ -38,5 +38,40 @@ describe("GeminiAdapter", () => {
     const g = aGemini(m)
     expect(g[0]).toEqual({ role: "model", parts: [{ functionCall: { name: "oc_validar", args: { caso: "sol-001" } }, thoughtSignature: "f" }] })
     expect(g[1].parts[0].functionResponse).toEqual({ name: "oc_validar", response: { ok: true, data: {} } })
+  })
+
+  it("503 transitorio: reintenta con el mismo modelo y responde sin error", async () => {
+    const estados = [503, 503, 200]
+    const urls: string[] = []
+    const fetcher = (async (u: string) => {
+      urls.push(u)
+      const s = estados.shift() ?? 200
+      return new Response(JSON.stringify(s === 200 ? { candidates: [{ content: { parts: [{ text: "ok" }] } }] } : { error: { code: s } }), { status: s })
+    }) as unknown as typeof fetch
+    const r = await new GeminiAdapter("principal", "k", fetcher, [1, 1], "respaldo").enviar([], herramientas, opciones)
+    expect(r.bloques).toEqual([{ tipo: "texto", texto: "ok" }])
+    expect(urls.every((u) => u.includes("/principal:"))).toBe(true)
+    expect(urls).toHaveLength(3)
+  })
+  it("si el principal sigue saturado, cae al modelo de respaldo", async () => {
+    const urls: string[] = []
+    const fetcher = (async (u: string) => {
+      urls.push(u)
+      return u.includes("/principal:") ? new Response("{}", { status: 503 }) : new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "desde respaldo" }] } }] }), { status: 200 })
+    }) as unknown as typeof fetch
+    const r = await new GeminiAdapter("principal", "k", fetcher, [1, 1], "respaldo").enviar([], herramientas, opciones)
+    expect(r.bloques).toEqual([{ tipo: "texto", texto: "desde respaldo" }])
+    expect(urls.filter((u) => u.includes("/principal:"))).toHaveLength(3)
+    expect(urls.filter((u) => u.includes("/respaldo:"))).toHaveLength(1)
+  })
+  it("si ambos fallan: mensaje claro de saturación", async () => {
+    const p = new GeminiAdapter("principal", "k", respuesta(503, {}), [1], "respaldo").enviar([], herramientas, opciones)
+    await expect(p).rejects.toMatchObject({ tipo: "saturado", message: expect.stringContaining("saturado") })
+  })
+  it("errores no transitorios (401) no se reintentan", async () => {
+    let n = 0
+    const fetcher = (async () => { n++; return new Response("{}", { status: 401 }) }) as unknown as typeof fetch
+    await expect(new GeminiAdapter("m", "k", fetcher, [1, 1], "r").enviar([], herramientas, opciones)).rejects.toMatchObject({ tipo: "autenticacion" })
+    expect(n).toBe(1)
   })
 })

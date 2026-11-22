@@ -27,6 +27,7 @@ Sin variables de entorno arranca con el proveedor `local` (determinista, sin mod
 | `LLM_PROVIDER` | `gemini` o `local` | `gemini` |
 | `GEMINI_API_KEY` | Clave de Google AI Studio. **Solo en el entorno del backend.** | — |
 | `GEMINI_MODEL` | Modelo de Gemini | `gemini-3.8-flash` |
+| `GEMINI_FALLBACK_MODEL` | Respaldo si el principal está saturado (`ninguno` lo desactiva) | `gemini-3.5-flash-lite` |
 | `ACCESS_USER` / `ACCESS_PASS` | Usuario y clave del link (obligatorios en producción; clave ≥ 10 caracteres) | — |
 | `MAX_ITERACIONES` | Tope de pasos modelo→herramientas por turno | `25` |
 | `MAX_TOKENS_SESION` / `MAX_TOKENS_DIA` | Topes de costo por sesión y global diario | `150000` / `2000000` |
@@ -53,7 +54,7 @@ Limpia `out/`, procesa los 6 casos llamando directo a las herramientas e imprime
 ## Pruebas
 
 ```bash
-npm test              # 83 pruebas: por regla, por caso, ciclo del agente, adaptador Gemini, seguridad, módulo
+npm test              # 87 pruebas: por regla, por caso, ciclo del agente, adaptador Gemini, seguridad, módulo
 npm run typecheck     # TypeScript estricto, sin any
 ```
 

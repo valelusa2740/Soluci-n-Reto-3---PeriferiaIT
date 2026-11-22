@@ -29,7 +29,7 @@ export interface LlmAdapter {
 export class ErrorLlm extends Error {
   constructor(
     mensaje: string,
-    readonly tipo: "timeout" | "autenticacion" | "limite" | "proveedor",
+    readonly tipo: "timeout" | "autenticacion" | "limite" | "saturado" | "proveedor",
   ) {
     super(mensaje)
   }

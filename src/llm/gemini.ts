@@ -28,8 +28,10 @@ export class GeminiAdapter implements LlmAdapter {
     readonly modelo: string,
     private readonly apiKey: string,
     private readonly fetcher: typeof fetch = fetch,
-    /** Espera antes del único reintento tras un 429 (el plan gratuito limita peticiones por minuto). */
-    private readonly esperaReintentoMs = 4000,
+    /** Esperas entre reintentos ante errores transitorios (429, 5xx, timeout): espera creciente. */
+    private readonly esperasMs: number[] = [1500, 4000],
+    /** Modelo de respaldo si el principal sigue fallando tras los reintentos (p. ej. saturado). */
+    readonly modeloRespaldo: string | null = null,
   ) {}
 
   async enviar(mensajes: Mensaje[], herramientas: DefinicionHerramienta[], o: OpcionesLlm): Promise<RespuestaLlm> {
@@ -39,13 +41,7 @@ export class GeminiAdapter implements LlmAdapter {
       tools: [{ functionDeclarations: herramientas.map((h) => ({ name: h.nombre, description: h.descripcion, parametersJsonSchema: sinMeta(h.esquema) })) }],
       generationConfig: { maxOutputTokens: o.maxTokens, temperature: 0 },
     }
-    let res = await this.pedir(cuerpo, o.timeoutMs)
-    if (res.status === 429 && this.esperaReintentoMs > 0) {
-      await new Promise((r) => setTimeout(r, this.esperaReintentoMs))
-      res = await this.pedir(cuerpo, o.timeoutMs)
-    }
-    if (!res.ok) throw errorHttp(res.status)
-    const json = (await res.json()) as RespuestaGemini
+    const json = await this.pedirConReintentos(cuerpo, o.timeoutMs)
     const candidato = json.candidates?.[0]
     const partes = candidato?.content?.parts ?? []
     if (partes.length === 0) {
@@ -58,9 +54,33 @@ export class GeminiAdapter implements LlmAdapter {
     }
   }
 
-  private async pedir(cuerpo: unknown, timeoutMs: number): Promise<Response> {
+  /**
+   * Principal con reintentos y espera creciente; si sigue fallando por un error transitorio, el modelo
+   * de respaldo con los mismos reintentos. Los intentos fallidos no consumen tokens del tope.
+   */
+  private async pedirConReintentos(cuerpo: unknown, timeoutMs: number): Promise<RespuestaGemini> {
+    const modelos = [this.modelo, ...(this.modeloRespaldo && this.modeloRespaldo !== this.modelo ? [this.modeloRespaldo] : [])]
+    let ultimo: ErrorLlm = new ErrorLlm("El proveedor del modelo no respondió. Intenta de nuevo.", "proveedor")
+    for (const modelo of modelos) {
+      for (let intento = 0; intento <= this.esperasMs.length; intento++) {
+        if (intento > 0) await new Promise((r) => setTimeout(r, this.esperasMs[intento - 1]))
+        try {
+          const res = await this.pedir(modelo, cuerpo, timeoutMs)
+          if (res.ok) return (await res.json()) as RespuestaGemini
+          ultimo = errorHttp(res.status)
+          if (!esTransitorio(res.status)) throw ultimo
+        } catch (e) {
+          if (!(e instanceof ErrorLlm) || !["timeout", "limite", "saturado"].includes(e.tipo)) throw e
+          ultimo = e
+        }
+      }
+    }
+    throw ultimo
+  }
+
+  private async pedir(modelo: string, cuerpo: unknown, timeoutMs: number): Promise<Response> {
     try {
-      return await this.fetcher(`${BASE}/${encodeURIComponent(this.modelo)}:generateContent`, {
+      return await this.fetcher(`${BASE}/${encodeURIComponent(modelo)}:generateContent`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": this.apiKey },
         body: JSON.stringify(cuerpo),
@@ -84,11 +104,14 @@ export class GeminiAdapter implements LlmAdapter {
   }
 }
 
+const esTransitorio = (status: number) => status === 429 || status >= 500
+
 function errorHttp(status: number): ErrorLlm {
-  if (status === 429) return new ErrorLlm("Se alcanzó el límite gratuito del modelo (Gemini, error 429). Espera un minuto y vuelve a intentarlo; tu sesión sigue activa.", "limite")
+  if (status >= 500) return new ErrorLlm(`El modelo está saturado o no disponible en este momento (error ${status}); ya reintenté varias veces y probé el modelo de respaldo. Espera un minuto y vuelve a intentarlo; tu sesión sigue activa.`, "saturado")
+  if (status === 429) return new ErrorLlm("Se alcanzó el límite gratuito del modelo (Gemini, error 429) incluso tras reintentar. Espera un minuto y vuelve a intentarlo; tu sesión sigue activa.", "limite")
   if (status === 401 || status === 403) return new ErrorLlm("El servidor no tiene una clave válida del modelo. Avísale al administrador.", "autenticacion")
   if (status === 404) return new ErrorLlm("El modelo configurado (GEMINI_MODEL) no existe o no está disponible.", "proveedor")
-  return new ErrorLlm(`El proveedor del modelo respondió con error (${status}). Intenta de nuevo.`, "proveedor")
+  return new ErrorLlm(`El proveedor del modelo rechazó la petición (error ${status}). Intenta de nuevo.`, "proveedor")
 }
 
 function sinMeta(esquema: Record<string, unknown>): Record<string, unknown> {

@@ -36,7 +36,7 @@ beforeAll(async () => {
   for (const m of ["log", "error", "warn"] as const) vi.spyOn(console, m).mockImplementation((...a: unknown[]) => void consola.push(a.join(" ")))
   const app = crearApp({
     directory: entorno.directory,
-    llm: new GeminiAdapter("gemini-test", CLAVE_MODELO, fetchFalso, 0),
+    llm: new GeminiAdapter("gemini-test", CLAVE_MODELO, fetchFalso, []),
     limites: { maxIteraciones: 5, maxTokensSesion: 100_000, maxTokensDia: 1_000_000, maxTokensRespuesta: 100, timeoutMs: 1000 },
     acceso: { usuario: USUARIO, clave: CLAVE_ACCESO },
     peticionesPorMinuto: 8,
