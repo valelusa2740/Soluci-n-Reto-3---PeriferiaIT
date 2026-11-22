@@ -111,8 +111,6 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 
 ## 7. Lectura del proceso: OC retroactivas
 
-> **BORRADOR** para que Valentina lo edite con sus palabras.
-
 **Qué está pasando.** En 1 de las 6 solicitudes del lote (≈17 %), sol-005, la factura FC-88231 se emitió el 10 de agosto y la solicitud se hizo el 27 de agosto, 17 días después. El correo del aprobador lo confirma: "Ya llegó la factura, por favor crear la OC para poder radicarla". En ese caso la OC no sirvió para **autorizar** el gasto antes de comprometerlo. Se usó para **legalizar** una factura que ya existía. La cotización, la comparación de precios y la validación del aprobador llegan cuando el proveedor ya entregó y facturó, así que el control pierde su valor preventivo.
 
 **Qué le diría a la dirección.**
@@ -161,10 +159,9 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 
 ## 11. Uso de IA
 
-- **Claude (Anthropic), en Claude Code:** leyó el PRD y los fixtures, redactó el borrador de `SPEC.md` y de las pruebas, generó el código (herramientas, reglas, adaptadores, ciclo, servidor, front), `demo.ts`, el README y el borrador de este documento. Yo revisé cada pieza contra el PRD y los casos.
-- **Gemini:** es el modelo que usa la aplicación en ejecución (no se usó para construir).
+- **Claude (Anthropic), en Claude Code:** leyó el PRD y los fixtures, redactó el borrador de `SPEC.md` y de las pruebas, generó el código (herramientas, reglas, adaptadores, ciclo, servidor, front), `demo.ts`, el README y el borrador de este documento. Yo efectué el trabajo de revisión realizada por el modelo de Inteligencia Artificial. Adicionalmente, revisé el despliegue en render para evaluar el modelo conversacional y validar que si funcionara respecto a lo que se esperaba.
+- **Gemini:** es el modelo que usa la aplicación en ejecución.
 - **Lo que descartamos de lo propuesto:** (1) el esqueleto inicial, que validaba en el prompt y usaba `/api/confirm` con 409: se reemplazó por reglas en código y confirmación en el siguiente mensaje; (2) tomar el tope de fvargas de CC-3030 para sol-003; (3) comparar la fecha de aprobación en UTC; (4) rechazar `oc_crear` cuando el payload del modelo difiere: se prefirió crear el payload reconstruido y advertir, para no romper la conversación sin necesidad; (5) usar el SDK de Anthropic, que se cambió a Gemini por costo.
-- _Valentina: completa aquí cualquier otra IA que hayas usado (por ejemplo, ChatGPT para leer el PRD)._
 
 ## 12. Riesgos de llevar esto a producción y cómo los mitigaría
 
