@@ -54,7 +54,7 @@ nunca lanza. El modelo las ve como `oc_<export>`. `ctx = { directory, sessionId,
 - **V1** `apta = (bloqueos.length === 0)`. Las confirmaciones no cambian `apta`.
 - **V2** Cada caso se valida solo con sus archivos y los maestros: ningún estado de un caso afecta a otro (prueba de aislamiento: validar en cualquier orden da lo mismo).
 - **V3** Cada bloqueo trae `regla`, `detalle` y `accion_sugerida`. Cada confirmación trae `regla`, `detalle` y, en RC5, ambos valores.
-- **V4** Si el paquete recibido del modelo difiere del que está en disco → bloqueo `INTEGRIDAD` (el modelo no puede "arreglar" montos).
+- **V4** Las herramientas validan siempre contra los archivos del caso; si el paquete o payload que manda el modelo difiere, se ignora y se informa en `advertencias` (el modelo no puede "arreglar" montos).
 
 ## 5. Resultado esperado por caso (oráculo de `demo.ts` y de `tests/casos.test.ts`)
 
@@ -77,7 +77,7 @@ nunca lanza. El modelo las ve como `oc_<export>`. `ctx = { directory, sessionId,
 
 ## 7. Creación (HU-5) y confirmación humana (CA3)
 
-- **C1** `oc_crear` revalida desde los archivos (no confía en lo que le pase el modelo) y reconstruye el payload; si el payload recibido difiere → `{ok:false}`.
+- **C1** `oc_crear` revalida desde los archivos (no confía en lo que le pase el modelo) y crea el payload reconstruido; si el recibido difiere, lo informa en `advertencias`.
 - **C2** Con bloqueos → `{ok:false}` y fila `bloqueada` en `control.csv`.
 - **C3** Con confirmaciones y sin confirmación humana válida → `{ok:false, error:"requiere confirmación"}` y fila `pendiente_confirmacion`.
 - **C4** Confirmación humana válida = `confirmado:true` **y** el servidor (`ctx.confirmacionHumana(caso)`) certifica que el mensaje inmediatamente siguiente de la persona confirmó ese caso (texto "confirmo"/"sí, créala" o botón). El modelo no puede confirmar solo.
