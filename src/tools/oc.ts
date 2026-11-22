@@ -60,9 +60,9 @@ export const validar = {
   description: "Aplica las reglas de control RC1–RC10 al paquete y devuelve si la OC es apta, sus bloqueos, confirmaciones, valores derivados y si es retroactiva.",
   args: {
     caso,
-    paquete: objeto.describe("Paquete tal como lo devolvió oc_leer_paquete"),
+    paquete: objeto.optional().describe("Opcional: paquete de oc_leer_paquete. Siempre se valida contra los archivos del caso"),
   },
-  async execute(args: { caso: string; paquete: Record<string, unknown> }, ctx: Ctx): Promise<string> {
+  async execute(args: { caso: string; paquete?: Record<string, unknown> }, ctx: Ctx): Promise<string> {
     try {
       const r = await contextoDelCaso(ctx, args.caso)
       if (!r.ok) return fallo(r.error)
@@ -78,10 +78,10 @@ export const construir_payload = {
   description: "Construye la orden de compra exactamente como quedaría en SAP, con la fuente de cada valor, y guarda la trazabilidad; solo funciona si la validación no tiene bloqueos.",
   args: {
     caso,
-    paquete: objeto.describe("Paquete devuelto por oc_leer_paquete"),
-    derivados: objeto.describe("Objeto `derivados` devuelto por oc_validar (puede ser {})"),
+    paquete: objeto.optional().describe("Opcional: paquete de oc_leer_paquete (se usa el de los archivos)"),
+    derivados: objeto.optional().describe("Opcional: `derivados` de oc_validar (se recalculan)"),
   },
-  async execute(args: { caso: string; paquete: Record<string, unknown>; derivados: Record<string, unknown> }, ctx: Ctx): Promise<string> {
+  async execute(args: { caso: string; paquete?: Record<string, unknown>; derivados?: Record<string, unknown> }, ctx: Ctx): Promise<string> {
     try {
       const r = await contextoDelCaso(ctx, args.caso)
       if (!r.ok) return fallo(r.error)
@@ -131,10 +131,10 @@ export const crear = {
   description: "Crea la orden de compra en SAP (simulado); revalida todo, rechaza si hay bloqueos y, si hay confirmaciones pendientes, solo crea con confirmado=true después de que la persona confirmó en el chat.",
   args: {
     caso,
-    payload: objeto.describe("Orden devuelta por oc_construir_payload (campo `orden`)"),
+    payload: objeto.optional().describe("Opcional: `orden` de oc_construir_payload; se crea siempre la reconstruida desde los archivos"),
     confirmado: z.boolean().optional().describe("true solo si la persona confirmó explícitamente en su último mensaje"),
   },
-  async execute(args: { caso: string; payload: Record<string, unknown>; confirmado?: boolean }, ctx: Ctx): Promise<string> {
+  async execute(args: { caso: string; payload?: Record<string, unknown>; confirmado?: boolean }, ctx: Ctx): Promise<string> {
     try {
       return await crearOrden(args, ctx)
     } catch (e) {
@@ -143,7 +143,7 @@ export const crear = {
   },
 }
 
-async function crearOrden(args: { caso: string; payload: Record<string, unknown>; confirmado?: boolean }, ctx: Ctx): Promise<string> {
+async function crearOrden(args: { caso: string; payload?: Record<string, unknown>; confirmado?: boolean }, ctx: Ctx): Promise<string> {
   const r = await contextoDelCaso(ctx, args.caso)
   if (!r.ok) return fallo(r.error)
   const { paquete, validacion: v } = r.c
@@ -174,7 +174,7 @@ async function crearOrden(args: { caso: string; payload: Record<string, unknown>
   if (!proveedorSap?.activo) return fallo(`SAP no reconoce al proveedor como activo; no se crea la OC de ${args.caso}.`)
 
   const { orden } = construirOrden(paquete, v, v.derivados)
-  const advertencias = advertenciaSiDifiere(sinConfirmador(args.payload as OrdenCompra), sinConfirmador(orden), "payload")
+  const advertencias = args.payload ? advertenciaSiDifiere(sinConfirmador(args.payload as OrdenCompra), sinConfirmador(orden), "payload") : []
   const confirmador = `analista (sesión ${ctx.sessionId})`
   const final: OrdenCompra = { ...orden, excepciones: orden.excepciones.map((e) => ({ ...e, confirmado_por: confirmador })) }
 

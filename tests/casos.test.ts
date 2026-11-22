@@ -172,7 +172,7 @@ describe("Excepciones (HU-6, T1–T3)", () => {
     expect(r).toMatchObject({ ok: false, error: expect.stringContaining("Argumentos inválidos") })
   })
   it("T2 argumentos faltantes y herramienta desconocida", async () => {
-    expect((await llamar(entorno, "oc_validar", { caso: "sol-001" })).ok).toBe(false)
+    expect((await llamar(entorno, "oc_validar", { paquete: {} })).ok).toBe(false)
     expect((await llamar(entorno, "oc_borrar_todo", {})).error).toContain("desconocida")
   })
   it("JSON malformado", async () => {

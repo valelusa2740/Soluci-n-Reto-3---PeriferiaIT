@@ -4,9 +4,10 @@
  */
 export type Bloque =
   | { tipo: "texto"; texto: string }
-  | { tipo: "llamada"; id: string; nombre: string; args: unknown }
+  | { tipo: "llamada"; id: string; nombre: string; args: unknown; firma?: string }
   | { tipo: "resultado"; id: string; contenido: string; error: boolean }
 
+// `firma`: dato opaco que algunos proveedores (Gemini) exigen devolver tal cual en la siguiente petición.
 export type Mensaje = { rol: "usuario" | "asistente"; bloques: Bloque[] }
 
 export type DefinicionHerramienta = { nombre: string; descripcion: string; esquema: Record<string, unknown> }
