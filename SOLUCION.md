@@ -1,5 +1,7 @@
 # SOLUCIÓN — Agente "Órdenes de Compra SAP" (Reto 03)
 
+> **Link de prueba:** https://reto-03-oc-agent-w7pl.onrender.com/ · usuario `evaluador` · clave `Reto3PeriferiaIT` · Repositorio: https://github.com/valelusa2740/Soluci-n-Reto-3---PeriferiaIT
+
 ## 1. Problema en una frase y a quién le duele
 
 La analista administrativa digita a mano cada orden de compra en SAP y valida de memoria si quien aprueba puede aprobar ese monto en ese centro de costo. Eso cuesta tiempo, deja pasar errores y no permite medir las OC que se crean después de la factura. Les duele a la analista (tiempo), a contabilidad y auditoría (control) y a la dirección (no tiene la medición).

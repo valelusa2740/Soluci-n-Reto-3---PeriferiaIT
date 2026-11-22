@@ -4,8 +4,9 @@ Agente conversacional en TypeScript que lee el paquete de una solicitud de compr
 
 ## Link de prueba y acceso
 
-- **URL:** `PENDIENTE (Render)`
-- **Usuario:** `PENDIENTE` · **Clave:** `PENDIENTE` (el navegador los pide al abrir el link; protegen la cuota del modelo)
+- **URL:** https://reto-03-oc-agent-w7pl.onrender.com/
+- **Usuario:** `evaluador` · **Clave:** `Reto3PeriferiaIT` (el navegador los pide al abrir el link; son credenciales de demostración que solo protegen la cuota del modelo, no dan acceso a datos reales)
+- Salud (sin clave): https://reto-03-oc-agent-w7pl.onrender.com/api/health
 - El plan gratuito de Render se duerme tras 15 minutos sin uso: el primer acceso puede tardar ~1 minuto.
 
 Documentos: especificación [`SPEC.md`](SPEC.md) · Planteamiento: [`SOLUCION.md`](SOLUCION.md) · PRD: [`docs/PRD.md`](docs/PRD.md)
