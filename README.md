@@ -27,7 +27,7 @@ Sin variables de entorno arranca con el proveedor `local` (determinista, sin mod
 | `LLM_PROVIDER` | `gemini` o `local` | `gemini` |
 | `GEMINI_API_KEY` | Clave de Google AI Studio. **Solo en el entorno del backend.** | — |
 | `GEMINI_MODEL` | Modelo de Gemini | `gemini-3.8-flash` |
-| `ACCESS_USER` / `ACCESS_PASS` | Usuario y clave del link (obligatorios en producción) | — |
+| `ACCESS_USER` / `ACCESS_PASS` | Usuario y clave del link (obligatorios en producción; clave ≥ 10 caracteres) | — |
 | `MAX_ITERACIONES` | Tope de pasos modelo→herramientas por turno | `25` |
 | `MAX_TOKENS_SESION` / `MAX_TOKENS_DIA` | Topes de costo por sesión y global diario | `150000` / `2000000` |
 | `LLM_TIMEOUT_MS` | Timeout al proveedor | `60000` |
@@ -53,9 +53,24 @@ Limpia `out/`, procesa los 6 casos llamando directo a las herramientas e imprime
 ## Pruebas
 
 ```bash
-npm test              # 71 pruebas: por regla, por caso, ciclo del agente, adaptador Gemini, módulo
+npm test              # 83 pruebas: por regla, por caso, ciclo del agente, adaptador Gemini, seguridad, módulo
 npm run typecheck     # TypeScript estricto, sin any
 ```
+
+## Seguridad (resumen)
+
+| Control | Cómo |
+|---|---|
+| Acceso | HTTP Basic con usuario y clave **solo por variables de entorno** (sin valores por defecto); comparación en tiempo constante; en producción el servidor no arranca sin ellas o con clave < 10 caracteres. |
+| Fuerza bruta y costo | Límite por IP antes de autenticar (120/min) y en la API (`MAX_PETICIONES_MINUTO`); topes de iteraciones, tokens por sesión y por día. |
+| Entradas | zod en todo: `sessionId` uuid, mensaje 1–2000 caracteres, sin campos extra, cuerpo ≤ 16 kB; `caso` solo `sol-…` (sin `../`). |
+| Navegador | CSP estricta (`script-src 'self'`), anti-iframe, `nosniff`, HSTS, sin CORS (solo mismo origen), el texto del modelo se escapa antes de mostrarse. |
+| Errores | Mensajes genéricos; nunca trazas ni rutas internas. |
+| Secretos | `GEMINI_API_KEY` solo en el backend, en cabecera HTTP (no en la URL); nunca en repo, front, logs ni respuestas (probado). `.env` y `out/` en `.gitignore`. Historial git revisado sin secretos. |
+| Datos | `out/log.jsonl` guarda solo argumentos simples y enmascara correos; las herramientas solo leen `fixtures/` y escriben `out/`; no ejecutan shell. |
+| Prompt injection | Los documentos del caso son datos: el prompt lo indica y, aunque el modelo fuera engañado, la creación exige confirmación validada por el servidor y los bloqueos no se pueden saltar. |
+
+Pruebas: `tests/seguridad.test.ts` (401 sin credenciales, 413 cuerpo enorme, 400 entradas inválidas, 429 por límite, cabeceras, la clave no aparece en respuestas, historial, logs ni consola).
 
 ## API
 
@@ -79,8 +94,8 @@ src/sap/adapter.ts · mock.ts    interfaz SapAdapter y SAP simulado (out/sap/)
 src/llm/adapter.ts              interfaz propia del proveedor LLM
 src/llm/gemini.ts · local.ts    Gemini (function calling) y proveedor local sin modelo
 src/agente/ciclo.ts             ciclo del agente (topes, confirmación, errores)
-src/server.ts                   API HTTP, acceso, límites
-web/index.html                  chat
+src/app.ts · server.ts          API HTTP, acceso, límites, cabeceras · arranque
+web/index.html · app.js         chat (sin scripts en línea, compatible con CSP)
 modulo/                         bonus: agente empaquetado (mismas piezas, ver tests/modulo.test.ts)
 fixtures/                       entregados por Periferia (sin modificar)
 out/                            generado en ejecución (no se versiona)

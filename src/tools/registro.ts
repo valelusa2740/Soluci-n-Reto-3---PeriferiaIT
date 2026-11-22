@@ -61,7 +61,8 @@ export async function ejecutarHerramienta(nombre: string, argsCrudos: unknown, c
   }
   const okFlag = esOk(resultado)
   const ms = Date.now() - inicio
-  await registrarLog(ctx, { herramienta: nombre, args: argsCrudos, ok: okFlag, ms, error: okFlag ? undefined : errorDe(resultado) }).catch(() => undefined)
+  const error = okFlag ? undefined : enmascarar(errorDe(resultado) ?? "")
+  await registrarLog(ctx, { herramienta: nombre, args: argsParaLog(argsCrudos), ok: okFlag, ms, error }).catch(() => undefined)
   return { nombre, args: argsCrudos, resultado, ok: okFlag, ms }
 }
 
@@ -80,4 +81,19 @@ function errorDe(resultado: string): string | undefined {
   } catch {
     return undefined
   }
+}
+
+/** Minimización de datos en out/log.jsonl: solo valores simples (caso, confirmado); los objetos se omiten. */
+export function argsParaLog(args: unknown): Record<string, unknown> {
+  if (!args || typeof args !== "object") return {}
+  const salida: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(args as Record<string, unknown>)) {
+    salida[k] = v === null || ["string", "number", "boolean"].includes(typeof v) ? (typeof v === "string" ? v.slice(0, 60) : v) : "[omitido]"
+  }
+  return salida
+}
+
+/** Enmascara correos en textos que van al log: "mlopez@dominio.com" → "m***@dominio.com". */
+export function enmascarar(texto: string): string {
+  return texto.replace(/([A-Za-z0-9])[A-Za-z0-9._%+-]*@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, "$1***@$2")
 }

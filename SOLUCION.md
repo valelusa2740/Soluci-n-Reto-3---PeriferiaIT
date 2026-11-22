@@ -168,7 +168,12 @@ Implementadas como funciones puras en `src/core/reglas.ts`, con pruebas positiva
 |---|---|
 | El modelo inventa o altera valores | Las herramientas son la única fuente; se relee el caso; `oc_crear` reconstruye el payload; el prompt lo prohíbe. |
 | Inyección de prompt para autoconfirmar o saltar bloqueos | Confirmación validada por el servidor; los bloqueos no se saltan ni con confirmación (probado). |
-| Fuga de la clave del modelo | Solo en variables de entorno del backend, cabecera HTTP, nunca en logs, front ni respuestas; `/api/health` no la expone. |
+| Fuga de la clave del modelo | Solo en variables de entorno del backend, cabecera HTTP (no URL), nunca en logs, front ni respuestas; `/api/health` no la expone; probado en `tests/seguridad.test.ts`. Historial git revisado sin secretos. En producción: gestor de secretos y rotación. |
+| Acceso no autorizado | HTTP Basic obligatorio en producción (clave ≥ 10, comparación en tiempo constante), límite por IP antes de autenticar contra fuerza bruta. En producción: SSO corporativo (OIDC) con roles. |
+| Ataques desde el navegador (XSS, clickjacking) | CSP `script-src 'self'` sin scripts en línea, escape del texto del modelo, `X-Frame-Options: DENY`, sin CORS. |
+| Entradas maliciosas (path traversal, cuerpos enormes) | zod en toda entrada; `caso` restringido a `sol-…`; cuerpo ≤ 16 kB; errores genéricos sin trazas. |
+| Datos personales en registros | `out/log.jsonl` solo guarda argumentos simples y enmascara correos; los fixtures son ficticios. En producción: retención definida y cifrado en reposo. |
+| Prompt injection desde los documentos | El prompt trata los documentos como datos; la creación depende de reglas en código y de la confirmación validada por el servidor, no del modelo. |
 | Gasto descontrolado / cuota gratuita | Topes de iteraciones, tokens por sesión y por día, límite por IP, acceso con clave, reintento único ante 429. |
 | Indisponibilidad o cambios del modelo gratuito | `GEMINI_MODEL` configurable y proveedor `local` de respaldo. |
 | Conexión SAP no viable | Plan B de §6 (archivo de carga / OC lista para pegar). |
