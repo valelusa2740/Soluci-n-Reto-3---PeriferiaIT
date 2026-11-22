@@ -1,12 +1,13 @@
 {
-  "name": "oc-agent",
+  "name": "reto-03-oc-agent",
   "version": "0.1.0",
   "scripts": {
-    "test": "vitest run",
-    "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
     "demo": "tsx demo.ts",
-    "typecheck": "tsc --noEmit"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "modulo": "tsx scripts/modulo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",
